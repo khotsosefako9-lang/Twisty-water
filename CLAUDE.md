@@ -14,8 +14,9 @@ python3 -m http.server 8000
 ```
 index.html                 # entire app: single file, zero dependencies (Google Fonts only)
 assets/
-  img/<flavour>/           # full-res stills: pour / serve / flatlay-torn / poster-hydrated / infographic
-  img/range/               # multi-flavour assets (lineup, group posters)
+  img/<flavour>/           # full-res stills: serve / flatlay-torn / poster-hydrated / infographic
+  img/range/               # multi-flavour assets (panorama crops, group posters)
+  unused/                  # assets with no slot in the current feed layout — kept, not rendered
   video/                   # h264 mp4 (cooler-summer-02 was transcoded from HEVC .mov)
   thumbs/                  # 640px grid thumbnails (lightbox loads the full PNG)
   posters/                 # video poster frames
@@ -25,12 +26,12 @@ REGENERATE-QUEUE.md        # every warped asset + a fix prompt for Nano Banana 2
 ## How the app works
 - **Single source of truth:** the `ASSETS` array at the top of the `<script>` in `index.html`. Every card renders from it. To add an asset: drop the file into `assets/`, generate a thumb, add one object to the array.
 - **Flavour worlds:** `html[data-flavour]` drives CSS variables (`--wash`, `--accent`…). Switching a flavour recolours the entire page and crossfades the hero pour video. Add a flavour = one CSS block + one chip + one hero `<video>`.
-- **Status grading:** `ready` (post as-is) / `review` (fine at feed size, micro-copy soft) / `regen` (label warped — see queue). The ⚠ toggle filters to the regen queue.
+- **Status grading:** `ready` (post as-is) / `review` (fine at feed size, micro-copy soft) / `regen` (label warped — see queue). Pressing "r" three times toggles a hidden regen-only filter (kept for internal review, not shown in the UI).
 - Lightbox supports keyboard (←/→/Esc), videos play with controls, `prefers-reduced-motion` respected.
 
 ## Regenerate a thumbnail
 ```bash
-ffmpeg -i assets/img/lemon/pour.png -vf "scale=640:-2" -q:v 5 assets/thumbs/lemon-pour.jpg
+ffmpeg -i assets/img/lemon/poster-hydrated.png -vf "scale=640:-2" -q:v 5 assets/thumbs/lemon-poster-hydrated.jpg
 ```
 
 ## Brand notes

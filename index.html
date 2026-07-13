@@ -283,67 +283,68 @@ footer{
    pinned: shows a 📌 badge and sits in the pinned top row next to
    the flavour carousel.
 
-   Row plan (3 tiles per row, one content type per row): a pinned
-   row (carousel + the 2 strongest range shots), then one row each
-   for pour-video / pour-still / serve / torn-paper / poster-hydrated
-   / film. Each 4-flavour row rotates which flavour sits out — the
-   window slides 3 positions through the repeating lemon → cucumber
-   → mint → rosemary cycle, so lemon/rosemary/mint/cucumber each
-   lead a row and the four flavours land equally often overall.
-   Anything left over (the rotated-out flavour per row, the two
-   lemon/cucumber-only infographics, the two extra films) collects
-   in the trailing section rather than breaking a row's type purity.
+   LOCKED 6-row layout — one content type per row, no leftovers:
+   Row 1  pinned panorama   — carousel (synthetic) + 2 static crops
+   Row 2  pour videos       — lemon · mint · rosemary
+   Row 3  Stay Hydrated     — lemon · cucumber · rosemary
+   Row 4  splash infographic— lemon · cucumber · rosemary
+   Row 5  torn-paper        — lemon · cucumber · rosemary
+   Row 6  serve shots       — lemon · cucumber · rosemary
+   Every row is exactly 3 same-type tiles; nothing else renders.
+   Assets with no slot in this layout (cucumber pour-video, mint
+   serve/poster/flatlay, the old range posters, the film reel) were
+   removed here and moved to assets/unused/ — files kept on disk,
+   just not part of the feed. The old pour-still images and the
+   original rosemary poster-hydrated were deleted outright per the
+   regen brief; the carousel's flavour slides now reuse the pour
+   posters instead of the deleted pour-still thumbs.
 ========================================================= */
 const ASSETS = [
-  // --- POURS ---
-  {sec:'pour', flav:'lemon',    type:'video', title:'Lemon pour · 5s',        file:'assets/video/pour-lemon.mp4',    thumb:'assets/posters/pour-lemon.jpg',    status:'review', order:3,  note:'Logo reads slightly loose ("Twrsty"); fine at feed size.'},
-  {sec:'pour', flav:'lemon',    type:'img',   title:'Lemon pour · still',     file:'assets/img/lemon/pour.png',      thumb:'assets/thumbs/lemon-pour.jpg',     status:'ready',  order:7,  note:'Clean label. Lead asset.'},
-  {sec:'pour', flav:'mint',     type:'video', title:'Mint pour · 5s',         file:'assets/video/pour-mint.mp4',     thumb:'assets/posters/pour-mint.jpg',     status:'review', order:5,  note:'Tagline micro-copy soft; logo clean.'},
-  {sec:'pour', flav:'mint',     type:'img',   title:'Mint pour · still',      file:'assets/img/mint/pour.png',       thumb:'assets/thumbs/mint-pour.jpg',      status:'ready',  order:22, note:'Clean label. Lead asset.'},
-  {sec:'pour', flav:'rosemary', type:'video', title:'Rosemary pour · 5s',     file:'assets/video/pour-rosemary.mp4', thumb:'assets/posters/pour-rosemary.jpg', status:'review', order:21, note:'Sub-line slightly soft; logo clean.'},
-  {sec:'pour', flav:'rosemary', type:'img',   title:'Rosemary pour · still',  file:'assets/img/rosemary/pour.png',   thumb:'assets/thumbs/rosemary-pour.jpg',  status:'ready',  order:6,  note:'Clean label. Lead asset.'},
-  {sec:'pour', flav:'cucumber', type:'video', title:'Cucumber pour · 5s',     file:'assets/video/pour-cucumber.mp4', thumb:'assets/posters/pour-cucumber.jpg', status:'regen',  order:4,  note:'Logo warped ("Trinity Water" read). Keep off main feed.'},
-  {sec:'pour', flav:'cucumber', type:'img',   title:'Cucumber pour · still',  file:'assets/img/cucumber/pour.png',   thumb:'assets/thumbs/cucumber-pour.jpg',  status:'regen',  order:8,  note:'Known warped cucumber label — regenerate before feed use.'},
+  // --- ROW 1: PINNED PANORAMA (2 static crops; 3rd tile is the carousel, built separately) ---
+  {sec:'range', flav:'all', type:'img', title:'Panorama · centre', file:'assets/img/range/panorama-mid.png',   thumb:'assets/thumbs/range-panorama-mid.jpg',   status:'ready', order:1, pinned:true, note:'Centre third of the 4-can panorama — seams match tiles either side.'},
+  {sec:'range', flav:'all', type:'img', title:'Panorama · right',  file:'assets/img/range/panorama-right.png', thumb:'assets/thumbs/range-panorama-right.jpg', status:'ready', order:2, pinned:true, note:'Right third of the 4-can panorama — seams match tiles either side.'},
 
-  // --- SERVES ---
-  {sec:'serve', flav:'lemon',    type:'img', title:'Lemon serve',    file:'assets/img/lemon/serve.png',    thumb:'assets/thumbs/lemon-serve.jpg',    status:'review', order:11, note:'Micro-copy soft; hero text clean at feed size.'},
-  {sec:'serve', flav:'cucumber', type:'img', title:'Cucumber serve', file:'assets/img/cucumber/serve.png', thumb:'assets/thumbs/cucumber-serve.jpg', status:'regen',  order:23, note:'Sub-line garbled ("CUCJUB8"). Regenerate.'},
-  {sec:'serve', flav:'mint',     type:'img', title:'Mint serve',     file:'assets/img/mint/serve.png',     thumb:'assets/thumbs/mint-serve.jpg',     status:'review', order:9,  note:'Logo tail ambiguous; tagline soft.'},
-  {sec:'serve', flav:'rosemary', type:'img', title:'Rosemary serve', file:'assets/img/rosemary/serve.png', thumb:'assets/thumbs/rosemary-serve.jpg', status:'review', order:10, note:'"Infussd" typo in sub-line; small at feed size.'},
+  // --- ROW 2: POUR VIDEOS ---
+  {sec:'pour', flav:'lemon',    type:'video', title:'Lemon pour · 5s',    file:'assets/video/pour-lemon.mp4',    thumb:'assets/posters/pour-lemon.jpg',    status:'review', order:3, note:'Logo reads slightly loose ("Twrsty"); fine at feed size.'},
+  {sec:'pour', flav:'mint',     type:'video', title:'Mint pour · 5s',     file:'assets/video/pour-mint.mp4',     thumb:'assets/posters/pour-mint.jpg',     status:'review', order:4, note:'Tagline micro-copy soft; logo clean.'},
+  {sec:'pour', flav:'rosemary', type:'video', title:'Rosemary pour · 5s', file:'assets/video/pour-rosemary.mp4', thumb:'assets/posters/pour-rosemary.jpg', status:'review', order:5, note:'Sub-line slightly soft; logo clean.'},
 
-  // --- TORN PAPER FLATLAYS ---
-  {sec:'flatlay', flav:'lemon',    type:'img', title:'Lemon · torn reveal',    file:'assets/img/lemon/flatlay-torn.png',    thumb:'assets/thumbs/lemon-flatlay-torn.jpg',    status:'regen', order:24, note:'Logo + tagline warped ("ORGAING… REREBSHING").'},
-  {sec:'flatlay', flav:'cucumber', type:'img', title:'Cucumber · torn reveal', file:'assets/img/cucumber/flatlay-torn.png', thumb:'assets/thumbs/cucumber-flatlay-torn.jpg', status:'regen', order:12, note:'Sub-line reads "Ccoarabeer". Regenerate.'},
-  {sec:'flatlay', flav:'mint',     type:'img', title:'Mint · torn reveal',     file:'assets/img/mint/flatlay-torn.png',     thumb:'assets/thumbs/mint-flatlay-torn.jpg',     status:'regen', order:13, note:'Logo tail warped; sub-line clean.'},
+  // --- ROW 3: STAY HYDRATED POSTERS ---
+  {sec:'poster', flav:'lemon',    type:'img', title:'Stay Hydrated · Lemon',    file:'assets/img/lemon/poster-hydrated.png',    thumb:'assets/thumbs/lemon-poster-hydrated.jpg',    status:'review', order:6, note:'Layout type clean; can micro-copy soft.'},
+  {sec:'poster', flav:'cucumber', type:'img', title:'Stay Hydrated · Cucumber', file:'assets/img/cucumber/poster-hydrated.png', thumb:'assets/thumbs/cucumber-poster-hydrated.jpg', status:'review', order:7, note:'Layout clean; can sub-line garbled.'},
+  {sec:'poster', flav:'rosemary', type:'img', title:'Stay Hydrated · Rosemary', file:'assets/img/rosemary/poster-hydrated.png', thumb:'assets/thumbs/rosemary-poster-hydrated.jpg', status:'review', order:8, note:'New purple asset; "Infussd" typo + garbled tagline on can, headline type clean.'},
+
+  // --- ROW 4: SPLASH INFOGRAPHICS ---
+  {sec:'infographic', flav:'lemon',    type:'img', title:'Splash infographic · Lemon',    file:'assets/img/lemon/infographic.png',    thumb:'assets/thumbs/lemon-infographic.jpg',    status:'regen', order:9,  note:'Can tagline garbled behind callouts.'},
+  {sec:'infographic', flav:'cucumber', type:'img', title:'Splash infographic · Cucumber', file:'assets/img/cucumber/infographic.png', thumb:'assets/thumbs/cucumber-infographic.jpg', status:'regen', order:10, note:'"CUCUINBIER" warp on can.'},
+  {sec:'infographic', flav:'rosemary', type:'img', title:'Splash infographic · Rosemary', file:'assets/img/rosemary/infographic.png', thumb:'assets/thumbs/rosemary-infographic.jpg', status:'review', order:11, note:'New purple asset; callout copy clean, can tagline garbled ("HEALFHY:HHY.REFRESHING..").'},
+
+  // --- ROW 5: TORN PAPER SERIES ---
+  {sec:'flatlay', flav:'lemon',    type:'img', title:'Lemon · torn reveal',    file:'assets/img/lemon/flatlay-torn.png',    thumb:'assets/thumbs/lemon-flatlay-torn.jpg',    status:'regen', order:12, note:'Logo + tagline warped ("ORGAING… REREBSHING").'},
+  {sec:'flatlay', flav:'cucumber', type:'img', title:'Cucumber · torn reveal', file:'assets/img/cucumber/flatlay-torn.png', thumb:'assets/thumbs/cucumber-flatlay-torn.jpg', status:'regen', order:13, note:'Sub-line reads "Ccoarabeer". Regenerate.'},
   {sec:'flatlay', flav:'rosemary', type:'img', title:'Rosemary · torn reveal', file:'assets/img/rosemary/flatlay-torn.png', thumb:'assets/thumbs/rosemary-flatlay-torn.jpg', status:'regen', order:14, note:'"Ressmmary" warp in sub-line.'},
 
-  // --- POSTERS & INFOGRAPHICS ---
-  {sec:'poster', flav:'lemon',    type:'img', title:'Stay Hydrated · Lemon',    file:'assets/img/lemon/poster-hydrated.png',    thumb:'assets/thumbs/lemon-poster-hydrated.jpg',    status:'review', order:15, note:'Layout type clean; can micro-copy soft.'},
-  {sec:'poster', flav:'cucumber', type:'img', title:'Stay Hydrated · Cucumber', file:'assets/img/cucumber/poster-hydrated.png', thumb:'assets/thumbs/cucumber-poster-hydrated.jpg', status:'review', order:16, note:'Layout clean; can sub-line garbled.'},
-  {sec:'poster', flav:'mint',     type:'img', title:'Stay Hydrated · Mint',     file:'assets/img/mint/poster-hydrated.png',     thumb:'assets/thumbs/mint-poster-hydrated.jpg',     status:'review', order:17, note:'Layout clean; can tagline soft.'},
-  {sec:'poster', flav:'rosemary', type:'img', title:'Stay Hydrated · Rosemary', file:'assets/img/rosemary/poster-hydrated.png', thumb:'assets/thumbs/rosemary-poster-hydrated.jpg', status:'review', order:25, note:'"Infussd" on can; layout type clean.'},
-  {sec:'poster', flav:'lemon',    type:'img', title:'Benefits callout · Lemon',    file:'assets/img/lemon/infographic.png',    thumb:'assets/thumbs/lemon-infographic.jpg',    status:'regen', order:26, note:'Can tagline garbled behind callouts.'},
-  {sec:'poster', flav:'cucumber', type:'img', title:'Benefits callout · Cucumber', file:'assets/img/cucumber/infographic.png', thumb:'assets/thumbs/cucumber-infographic.jpg', status:'regen', order:27, note:'"CUCUINBIER" warp on can.'},
-  {sec:'poster', flav:'all', type:'img', title:'Healthy Living · 3-can',  file:'assets/img/range/poster-healthy-living.png', thumb:'assets/thumbs/range-poster-healthy-living.jpg', status:'regen', order:1, pinned:true, note:'Brand name renders "Twisty Waters"; flavour descriptors garbled.'},
-  {sec:'poster', flav:'all', type:'img', title:'Poolside · 4-can',        file:'assets/img/range/poster-poolside.png',       thumb:'assets/thumbs/range-poster-poolside.jpg',       status:'regen', order:2, pinned:true, note:'Cans read "Healthy Living" instead of Twisty Water.'},
-
-  // --- FILMS + RANGE ---
-  {sec:'film', flav:'all', type:'video', title:'Cooler scene · 01',        file:'assets/video/cooler-summer-01.mp4',  thumb:'assets/posters/cooler-summer-01.jpg',  status:'review', order:19, note:'Reads clean at distance; label micro-copy busy up close.'},
-  {sec:'film', flav:'all', type:'video', title:'Cooler scene · 02',        file:'assets/video/cooler-summer-02.mp4',  thumb:'assets/posters/cooler-summer-02.jpg',  status:'review', order:20, note:'Transcoded from HEVC .mov for browser playback.'},
-  {sec:'film', flav:'all', type:'video', title:'Lineup ident · float',     file:'assets/video/lineup-float.mp4',      thumb:'assets/posters/lineup-float.jpg',      status:'regen',  order:18, note:'Logo warped ("Twistylvlaten") on all four cans.'},
-  {sec:'film', flav:'all', type:'img',   title:'Lineup still · float',     file:'assets/img/range/lineup-float.png',  thumb:'assets/thumbs/range-lineup-float.jpg', status:'regen',  order:28, note:'Same warp as ident — regenerate as matched pair.'},
-  {sec:'film', flav:'all', type:'video', title:'Condensation b-roll · 10s',file:'assets/video/broll-condensation.mp4',thumb:'assets/posters/broll-condensation.jpg',status:'ready',  order:29, note:'No visible text — safe cutaway for any edit.'},
+  // --- ROW 6: SERVE SHOTS ---
+  {sec:'serve', flav:'lemon',    type:'img', title:'Lemon serve',    file:'assets/img/lemon/serve.png',    thumb:'assets/thumbs/lemon-serve.jpg',    status:'review', order:15, note:'Micro-copy soft; hero text clean at feed size.'},
+  {sec:'serve', flav:'cucumber', type:'img', title:'Cucumber serve', file:'assets/img/cucumber/serve.png', thumb:'assets/thumbs/cucumber-serve.jpg', status:'regen',  order:16, note:'Sub-line garbled ("CUCJUB8"). Regenerate.'},
+  {sec:'serve', flav:'rosemary', type:'img', title:'Rosemary serve', file:'assets/img/rosemary/serve.png', thumb:'assets/thumbs/rosemary-serve.jpg', status:'review', order:17, note:'"Infussd" typo in sub-line; small at feed size.'},
 ];
 
 const BADGE = {ready:'Feed-ready', review:'Review', regen:'Regenerate'};
 const FLAV_LABEL = {all:'Full range', lemon:'Hint of Lemon', cucumber:'Cucumber Infusion', mint:'Fresh Mint', rosemary:'Rosemary & Lemon'};
 
-/* ---------- pinned flavour carousel ---------- */
+/* ---------- pinned flavour carousel ----------
+   Slide 0 is the panorama-left crop — the carousel's resting frame,
+   so the pinned row reads as one seamless image whenever the page
+   loads or the auto-cycle comes back around. Slides 1-4 cycle the
+   four flavour hero pours (reusing the pour-video posters, since the
+   old pour-still thumbs were deleted along with that row). */
 const CAROUSEL_SLIDES = [
-  {flav:'lemon',    thumb:'assets/thumbs/lemon-pour.jpg'},
-  {flav:'cucumber', thumb:'assets/thumbs/cucumber-pour.jpg'},
-  {flav:'mint',     thumb:'assets/thumbs/mint-pour.jpg'},
-  {flav:'rosemary', thumb:'assets/thumbs/rosemary-pour.jpg'},
+  {flav:'all',      thumb:'assets/thumbs/range-panorama-left.jpg', label:'Panorama · left'},
+  {flav:'lemon',    thumb:'assets/posters/pour-lemon.jpg'},
+  {flav:'cucumber', thumb:'assets/posters/pour-cucumber.jpg'},
+  {flav:'mint',     thumb:'assets/posters/pour-mint.jpg'},
+  {flav:'rosemary', thumb:'assets/posters/pour-rosemary.jpg'},
 ];
 const CAROUSEL_ICON = `<span class="carousel-icon"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect x="3" y="7" width="14" height="14" rx="2" fill="rgba(0,0,0,.35)" stroke="#fff" stroke-width="1.5"/>
@@ -359,7 +360,7 @@ function buildCarouselTile(){
   tile.innerHTML = `
     <span class="pin-badge">📌</span>
     ${CAROUSEL_ICON}
-    ${CAROUSEL_SLIDES.map((s,i)=>`<div class="slide${i===0?' on':''}"><img src="${s.thumb}" alt="${FLAV_LABEL[s.flav]} pour"></div>`).join('')}
+    ${CAROUSEL_SLIDES.map((s,i)=>`<div class="slide${i===0?' on':''}"><img src="${s.thumb}" alt="${s.label || FLAV_LABEL[s.flav]+' pour'}"></div>`).join('')}
     <div class="carousel-dots">${CAROUSEL_SLIDES.map((_,i)=>`<span${i===0?' class="active"':''}></span>`).join('')}</div>`;
   const slides = tile.querySelectorAll('.slide');
   const dots = tile.querySelectorAll('.carousel-dots span');
@@ -371,7 +372,7 @@ function buildCarouselTile(){
   function advance(){ goTo(slide+1); }
   function restartTimer(){
     clearInterval(carouselTimer);
-    carouselTimer = setInterval(advance, 3000);
+    carouselTimer = setInterval(advance, 5000);
   }
   dots.forEach((d,i)=>d.addEventListener('click', e=>{ e.stopPropagation(); goTo(i); restartTimer(); }));
   tile.addEventListener('click', ()=>{ advance(); restartTimer(); });
