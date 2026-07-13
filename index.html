@@ -49,14 +49,9 @@ button{font:inherit;cursor:pointer;border:none;background:none}
 }
 .hero-copy{
   padding:clamp(28px,6vw,84px);
-  display:flex; flex-direction:column; justify-content:center; gap:22px;
+  display:flex; flex-direction:column; justify-content:center; align-items:flex-start; gap:26px;
   position:relative; z-index:2;
 }
-.eyebrow{
-  font-size:13px; letter-spacing:.22em; text-transform:uppercase; font-weight:700;
-  color:var(--accent-ink); display:flex; align-items:center; gap:10px;
-}
-.eyebrow::before{content:""; width:34px; height:3px; background:var(--accent); border-radius:2px}
 h1{
   font-family:'Anton',sans-serif; font-weight:400;
   font-size:clamp(56px,9.5vw,148px); line-height:.92; letter-spacing:.01em;
@@ -69,16 +64,13 @@ h1 .tint{color:var(--accent); transition:color .7s var(--ease)}
   color:var(--accent-ink); transform:rotate(-2deg); transform-origin:left;
   transition:color .7s var(--ease);
 }
-.hero-stats{display:flex; gap:34px; margin-top:8px; flex-wrap:wrap}
-.stat b{font-family:'Anton',sans-serif; font-size:34px; font-weight:400; display:block; color:var(--ink)}
-.stat span{font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:600; color:var(--accent-ink)}
 .hero-stage{position:relative; overflow:hidden}
 .hero-stage::after{ /* soft wash blend into video */
   content:""; position:absolute; inset:0;
   background:linear-gradient(90deg,var(--wash) 0%,transparent 26%);
   transition:background .7s var(--ease); pointer-events:none;
 }
-.hero-video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .8s var(--ease)}
+.hero-video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center top; opacity:0; transition:opacity .8s var(--ease)}
 .hero-video.on{opacity:1}
 .hero-tag{
   position:absolute; bottom:22px; right:22px; z-index:3;
@@ -105,13 +97,6 @@ h1 .tint{color:var(--accent); transition:color .7s var(--ease)}
 .chip:hover{border-color:var(--accent); color:var(--accent)}
 .chip.active{background:var(--accent); border-color:var(--accent); color:#fff}
 .chip .dot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:8px; vertical-align:1px}
-.switch .spacer{flex:1}
-.regen-toggle{
-  font-size:12.5px; font-weight:700; letter-spacing:.06em; padding:9px 16px;
-  border-radius:999px; border:1.5px dashed var(--regen); color:var(--regen);
-  white-space:nowrap; transition:all .3s var(--ease);
-}
-.regen-toggle.active{background:var(--regen); color:#fff; border-style:solid}
 
 /* ============ SECTIONS ============ */
 main{max-width:1240px; margin:0 auto; padding:0 20px 90px}
@@ -211,15 +196,8 @@ footer{
 <!-- ============ HERO ============ -->
 <header class="hero">
   <div class="hero-copy">
-    <p class="eyebrow">Launch asset studio · Gqeberha → South Africa</p>
     <h1><span class="stack">Twisty</span><span class="stack tint">Water</span></h1>
     <p class="script">Dynamic. Healthy. Refreshing.</p>
-    <div class="hero-stats">
-      <div class="stat"><b>4</b><span>Flavours</span></div>
-      <div class="stat"><b id="statImg">21</b><span>Stills</span></div>
-      <div class="stat"><b id="statVid">8</b><span>Films</span></div>
-      <div class="stat"><b id="statReady">—</b><span>Feed-ready</span></div>
-    </div>
   </div>
   <div class="hero-stage" id="heroStage">
     <video class="hero-video on" muted loop playsinline autoplay data-flav="all"    src="assets/video/lineup-float.mp4"></video>
@@ -239,8 +217,6 @@ footer{
     <button class="chip" data-flav="cucumber"><span class="dot" style="background:#8FA96B"></span>Cucumber Infusion</button>
     <button class="chip" data-flav="mint"><span class="dot" style="background:#5BBE84"></span>Fresh Mint</button>
     <button class="chip" data-flav="rosemary"><span class="dot" style="background:#9B87C9"></span>Rosemary &amp; Lemon</button>
-    <span class="spacer"></span>
-    <button class="regen-toggle" id="regenToggle">⚠ Regen queue only</button>
   </nav>
 </div>
 
@@ -382,8 +358,6 @@ function render(){
     }
   });
   reveal();
-  const ready = ASSETS.filter(a=>a.status==='ready').length;
-  document.getElementById('statReady').textContent = ready;
 }
 
 /* ---------- scroll reveal ---------- */
@@ -415,11 +389,6 @@ document.querySelectorAll('.chip').forEach(c=>{
     render();
   });
 });
-document.getElementById('regenToggle').addEventListener('click', e=>{
-  regenOnly = !regenOnly;
-  e.currentTarget.classList.toggle('active', regenOnly);
-  render();
-});
 
 /* ---------- lightbox ---------- */
 const lb = document.getElementById('lb'), frame = document.getElementById('lbFrame'), bar = document.getElementById('lbBar');
@@ -443,6 +412,21 @@ document.addEventListener('keydown', e=>{
   if(e.key==='Escape') closeLB();
   if(e.key==='ArrowLeft') document.getElementById('lbPrev').click();
   if(e.key==='ArrowRight') document.getElementById('lbNext').click();
+});
+
+/* hidden internal shortcut: press "r" three times in quick succession to
+   toggle the regen-only filter (kept for asset review, not for public use) */
+let rPresses = 0, rTimer = null;
+document.addEventListener('keydown', e=>{
+  if(e.key.toLowerCase()!=='r' || lb.classList.contains('open')) return;
+  rPresses++;
+  clearTimeout(rTimer);
+  rTimer = setTimeout(()=>{ rPresses = 0; }, 1200);
+  if(rPresses>=3){
+    rPresses = 0;
+    regenOnly = !regenOnly;
+    render();
+  }
 });
 
 render();
