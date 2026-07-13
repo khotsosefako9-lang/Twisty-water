@@ -13,7 +13,6 @@
   --ink:#0E2A4A;
   --brand:#1D5FAF;
   --silver:#F4F7FA;
-  --card:#FFFFFF;
   --ok:#1F6B45; --rev:#8A6D00; --regen:#A8402F;
   --radius:18px;
   --ease:cubic-bezier(.22,.9,.3,1);
@@ -98,43 +97,41 @@ h1 .tint{color:var(--accent); transition:color .7s var(--ease)}
 .chip.active{background:var(--accent); border-color:var(--accent); color:#fff}
 .chip .dot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:8px; vertical-align:1px}
 
-/* ============ SECTIONS ============ */
-main{max-width:1240px; margin:0 auto; padding:0 20px 90px}
-section{padding-top:74px}
-.sec-head{display:flex; align-items:baseline; gap:18px; margin-bottom:26px; flex-wrap:wrap}
-.sec-head h2{
-  font-family:'Anton',sans-serif; font-weight:400; text-transform:uppercase;
-  font-size:clamp(30px,4.4vw,52px); letter-spacing:.015em;
+/* ============ PROFILE HEADER ============ */
+main{max-width:935px; margin:0 auto; padding:0 3px 60px}
+.ig-header{
+  max-width:935px; margin:0 auto;
+  display:flex; align-items:center; gap:18px;
+  padding:28px 12px 20px;
 }
-.sec-head .k{font-family:'Kaushan Script',cursive; font-size:clamp(18px,2.2vw,26px); color:var(--accent); transition:color .7s var(--ease)}
-.sec-note{font-size:14.5px; color:rgba(14,42,74,.7); max-width:640px; line-height:1.55; margin:-12px 0 26px}
+.ig-avatar{
+  width:64px; height:64px; border-radius:50%; flex-shrink:0;
+  display:grid; place-items:center;
+  background:linear-gradient(135deg,var(--accent),var(--accent-ink));
+  transition:background .7s var(--ease);
+}
+.ig-avatar svg{width:30px; height:30px}
+.ig-name{font-weight:800; font-size:17px; color:var(--ink)}
+.ig-bio{font-size:14px; color:rgba(14,42,74,.72); margin-top:3px}
 
-/* ============ GRID + CARDS ============ */
-.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:18px}
-.grid.wide{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
-.card{
-  background:var(--card); border-radius:var(--radius); overflow:hidden;
-  box-shadow:0 1px 3px rgba(14,42,74,.07), 0 10px 26px -18px rgba(14,42,74,.25);
-  transform:translateY(0); transition:transform .35s var(--ease), box-shadow .35s var(--ease), opacity .4s;
-  cursor:pointer; position:relative;
-  opacity:0; translate:0 22px;
+/* ============ IG-STYLE GRID ============ */
+.ig-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:3px}
+.ig-tile{
+  position:relative; aspect-ratio:1/1; overflow:hidden; cursor:pointer;
+  background:#E7EDF2;
+  opacity:0; transition:opacity .5s var(--ease);
 }
-.card.shown{opacity:1; translate:0 0; transition:opacity .6s var(--ease), translate .6s var(--ease), transform .35s var(--ease), box-shadow .35s var(--ease)}
-.card:hover{transform:translateY(-6px); box-shadow:0 2px 6px rgba(14,42,74,.09), 0 22px 40px -18px rgba(14,42,74,.38)}
-.card .media{position:relative; aspect-ratio:9/15; overflow:hidden; background:#E7EDF2}
-.card .media img{width:100%; height:100%; object-fit:cover; transition:transform .6s var(--ease)}
-.card:hover .media img{transform:scale(1.04)}
-.card .play{
-  position:absolute; inset:0; display:grid; place-items:center; pointer-events:none;
+.ig-tile.shown{opacity:1}
+.ig-tile img{width:100%; height:100%; object-fit:cover; object-position:center top; transition:transform .4s var(--ease)}
+.ig-tile:hover img{transform:scale(1.04)}
+.ig-tile .play{
+  position:absolute; top:6px; right:6px; color:#fff; font-size:13px;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.65)); pointer-events:none;
 }
-.card .play span{
-  width:58px; height:58px; border-radius:50%; display:grid; place-items:center;
-  background:rgba(255,255,255,.88); backdrop-filter:blur(6px);
-  box-shadow:0 6px 18px rgba(14,42,74,.25); font-size:20px; padding-left:4px;
+.feed-empty{
+  padding:52px 20px; text-align:center; color:rgba(14,42,74,.55);
+  font-size:15px; grid-column:1/-1;
 }
-.card .meta{padding:13px 15px 15px; display:flex; align-items:center; justify-content:space-between; gap:10px}
-.card .meta .t{font-weight:700; font-size:14px}
-.card .meta .f{font-size:11.5px; color:rgba(14,42,74,.55); display:block; margin-top:2px}
 .badge{
   font-size:10.5px; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
   padding:5px 10px; border-radius:999px; white-space:nowrap; flex-shrink:0;
@@ -142,10 +139,6 @@ section{padding-top:74px}
 .badge.ready{background:#E2F3E9; color:var(--ok)}
 .badge.review{background:#FBF0D2; color:var(--rev)}
 .badge.regen{background:#FBE3DD; color:var(--regen)}
-.empty{
-  padding:52px 20px; text-align:center; color:rgba(14,42,74,.55);
-  font-size:15px; display:none; grid-column:1/-1;
-}
 
 /* ============ LIGHTBOX ============ */
 .lb{
@@ -186,7 +179,7 @@ footer{
 }
 @media (prefers-reduced-motion:reduce){
   *{transition:none!important; animation:none!important; scroll-behavior:auto}
-  .card{opacity:1; translate:0 0}
+  .ig-tile{opacity:1}
 }
 :focus-visible{outline:3px solid var(--accent); outline-offset:2px; border-radius:6px}
 </style>
@@ -209,6 +202,20 @@ footer{
   </div>
 </header>
 
+<!-- ============ PROFILE HEADER ============ -->
+<div class="ig-header">
+  <div class="ig-avatar" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 11c2-3 4-3 6 0s4 3 6 0 4-3 6 0" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M4 16c2-3 4-3 6 0s4 3 6 0 4-3 6 0" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>
+    </svg>
+  </div>
+  <div>
+    <div class="ig-name">Twisty Water</div>
+    <div class="ig-bio">Water, with a twist. 💧</div>
+  </div>
+</div>
+
 <!-- ============ FLAVOUR SWITCH ============ -->
 <div class="switch-wrap">
   <nav class="switch" aria-label="Flavour filter">
@@ -221,35 +228,7 @@ footer{
 </div>
 
 <main>
-  <section id="pours">
-    <div class="sec-head"><h2>The Pour</h2><span class="k">motion + stills</span></div>
-    <p class="sec-note">Hero product moments — the four flavour pours, each in its own full-bleed colour world. These lead the tease and launch phases.</p>
-    <div class="grid" data-sec="pour"></div>
-  </section>
-
-  <section id="serves">
-    <div class="sec-head"><h2>Serve Shots</h2><span class="k">can + glass</span></div>
-    <p class="sec-note">Quieter tabletop stills for carousels and stories — real-serve framing with the infusion visible in the glass.</p>
-    <div class="grid" data-sec="serve"></div>
-  </section>
-
-  <section id="flatlays">
-    <div class="sec-head"><h2>Torn Paper Series</h2><span class="k">reveal concept</span></div>
-    <p class="sec-note">The paper-tear reveal set. Strong concept, but every unit in this series carries label warping — the whole set sits in the regeneration queue.</p>
-    <div class="grid" data-sec="flatlay"></div>
-  </section>
-
-  <section id="posters">
-    <div class="sec-head"><h2>Posters &amp; Infographics</h2><span class="k">stay hydrated</span></div>
-    <p class="sec-note">Typeset campaign layouts — the Stay Hydrated series plus benefit-callout infographics for story pins and print tests.</p>
-    <div class="grid" data-sec="poster"></div>
-  </section>
-
-  <section id="films">
-    <div class="sec-head"><h2>Campaign Films</h2><span class="k">summer scenes</span></div>
-    <p class="sec-note">Lifestyle motion — cooler scenes for the amplify phase, the floating lineup ident, and clean condensation b-roll for edits.</p>
-    <div class="grid wide" data-sec="film"></div>
-  </section>
+  <div class="ig-grid" id="feedGrid"></div>
 </main>
 
 <!-- ============ LIGHTBOX ============ -->
@@ -274,46 +253,51 @@ footer{
    ASSET REGISTER — single source of truth.
    Add / re-grade assets here; the page renders from this.
    status: 'ready' | 'review' | 'regen'
+   order:  feed position (1 = first post). This is the planning
+   knob — renumber assets here to lock the real posting sequence
+   once it's set from the calendar; the grid always sorts by it.
+   Default order alternates lemon → cucumber → mint → rosemary so
+   no two same-flavour posts land adjacent in the grid.
 ========================================================= */
 const ASSETS = [
   // --- POURS ---
-  {sec:'pour', flav:'lemon',    type:'video', title:'Lemon pour · 5s',        file:'assets/video/pour-lemon.mp4',    thumb:'assets/posters/pour-lemon.jpg',    status:'review', note:'Logo reads slightly loose ("Twrsty"); fine at feed size.'},
-  {sec:'pour', flav:'lemon',    type:'img',   title:'Lemon pour · still',     file:'assets/img/lemon/pour.png',      thumb:'assets/thumbs/lemon-pour.jpg',     status:'ready',  note:'Clean label. Lead asset.'},
-  {sec:'pour', flav:'mint',     type:'video', title:'Mint pour · 5s',         file:'assets/video/pour-mint.mp4',     thumb:'assets/posters/pour-mint.jpg',     status:'review', note:'Tagline micro-copy soft; logo clean.'},
-  {sec:'pour', flav:'mint',     type:'img',   title:'Mint pour · still',      file:'assets/img/mint/pour.png',       thumb:'assets/thumbs/mint-pour.jpg',      status:'ready',  note:'Clean label. Lead asset.'},
-  {sec:'pour', flav:'rosemary', type:'video', title:'Rosemary pour · 5s',     file:'assets/video/pour-rosemary.mp4', thumb:'assets/posters/pour-rosemary.jpg', status:'review', note:'Sub-line slightly soft; logo clean.'},
-  {sec:'pour', flav:'rosemary', type:'img',   title:'Rosemary pour · still',  file:'assets/img/rosemary/pour.png',   thumb:'assets/thumbs/rosemary-pour.jpg',  status:'ready',  note:'Clean label. Lead asset.'},
-  {sec:'pour', flav:'cucumber', type:'video', title:'Cucumber pour · 5s',     file:'assets/video/pour-cucumber.mp4', thumb:'assets/posters/pour-cucumber.jpg', status:'regen',  note:'Logo warped ("Trinity Water" read). Keep off main feed.'},
-  {sec:'pour', flav:'cucumber', type:'img',   title:'Cucumber pour · still',  file:'assets/img/cucumber/pour.png',   thumb:'assets/thumbs/cucumber-pour.jpg',  status:'regen',  note:'Known warped cucumber label — regenerate before feed use.'},
+  {sec:'pour', flav:'lemon',    type:'video', title:'Lemon pour · 5s',        file:'assets/video/pour-lemon.mp4',    thumb:'assets/posters/pour-lemon.jpg',    status:'review', order:1,  note:'Logo reads slightly loose ("Twrsty"); fine at feed size.'},
+  {sec:'pour', flav:'lemon',    type:'img',   title:'Lemon pour · still',     file:'assets/img/lemon/pour.png',      thumb:'assets/thumbs/lemon-pour.jpg',     status:'ready',  order:5,  note:'Clean label. Lead asset.'},
+  {sec:'pour', flav:'mint',     type:'video', title:'Mint pour · 5s',         file:'assets/video/pour-mint.mp4',     thumb:'assets/posters/pour-mint.jpg',     status:'review', order:3,  note:'Tagline micro-copy soft; logo clean.'},
+  {sec:'pour', flav:'mint',     type:'img',   title:'Mint pour · still',      file:'assets/img/mint/pour.png',       thumb:'assets/thumbs/mint-pour.jpg',      status:'ready',  order:7,  note:'Clean label. Lead asset.'},
+  {sec:'pour', flav:'rosemary', type:'video', title:'Rosemary pour · 5s',     file:'assets/video/pour-rosemary.mp4', thumb:'assets/posters/pour-rosemary.jpg', status:'review', order:4,  note:'Sub-line slightly soft; logo clean.'},
+  {sec:'pour', flav:'rosemary', type:'img',   title:'Rosemary pour · still',  file:'assets/img/rosemary/pour.png',   thumb:'assets/thumbs/rosemary-pour.jpg',  status:'ready',  order:8,  note:'Clean label. Lead asset.'},
+  {sec:'pour', flav:'cucumber', type:'video', title:'Cucumber pour · 5s',     file:'assets/video/pour-cucumber.mp4', thumb:'assets/posters/pour-cucumber.jpg', status:'regen',  order:2,  note:'Logo warped ("Trinity Water" read). Keep off main feed.'},
+  {sec:'pour', flav:'cucumber', type:'img',   title:'Cucumber pour · still',  file:'assets/img/cucumber/pour.png',   thumb:'assets/thumbs/cucumber-pour.jpg',  status:'regen',  order:6,  note:'Known warped cucumber label — regenerate before feed use.'},
 
   // --- SERVES ---
-  {sec:'serve', flav:'lemon',    type:'img', title:'Lemon serve',    file:'assets/img/lemon/serve.png',    thumb:'assets/thumbs/lemon-serve.jpg',    status:'review', note:'Micro-copy soft; hero text clean at feed size.'},
-  {sec:'serve', flav:'cucumber', type:'img', title:'Cucumber serve', file:'assets/img/cucumber/serve.png', thumb:'assets/thumbs/cucumber-serve.jpg', status:'regen',  note:'Sub-line garbled ("CUCJUB8"). Regenerate.'},
-  {sec:'serve', flav:'mint',     type:'img', title:'Mint serve',     file:'assets/img/mint/serve.png',     thumb:'assets/thumbs/mint-serve.jpg',     status:'review', note:'Logo tail ambiguous; tagline soft.'},
-  {sec:'serve', flav:'rosemary', type:'img', title:'Rosemary serve', file:'assets/img/rosemary/serve.png', thumb:'assets/thumbs/rosemary-serve.jpg', status:'review', note:'"Infussd" typo in sub-line; small at feed size.'},
+  {sec:'serve', flav:'lemon',    type:'img', title:'Lemon serve',    file:'assets/img/lemon/serve.png',    thumb:'assets/thumbs/lemon-serve.jpg',    status:'review', order:9,  note:'Micro-copy soft; hero text clean at feed size.'},
+  {sec:'serve', flav:'cucumber', type:'img', title:'Cucumber serve', file:'assets/img/cucumber/serve.png', thumb:'assets/thumbs/cucumber-serve.jpg', status:'regen',  order:10, note:'Sub-line garbled ("CUCJUB8"). Regenerate.'},
+  {sec:'serve', flav:'mint',     type:'img', title:'Mint serve',     file:'assets/img/mint/serve.png',     thumb:'assets/thumbs/mint-serve.jpg',     status:'review', order:11, note:'Logo tail ambiguous; tagline soft.'},
+  {sec:'serve', flav:'rosemary', type:'img', title:'Rosemary serve', file:'assets/img/rosemary/serve.png', thumb:'assets/thumbs/rosemary-serve.jpg', status:'review', order:12, note:'"Infussd" typo in sub-line; small at feed size.'},
 
   // --- TORN PAPER FLATLAYS ---
-  {sec:'flatlay', flav:'lemon',    type:'img', title:'Lemon · torn reveal',    file:'assets/img/lemon/flatlay-torn.png',    thumb:'assets/thumbs/lemon-flatlay-torn.jpg',    status:'regen', note:'Logo + tagline warped ("ORGAING… REREBSHING").'},
-  {sec:'flatlay', flav:'cucumber', type:'img', title:'Cucumber · torn reveal', file:'assets/img/cucumber/flatlay-torn.png', thumb:'assets/thumbs/cucumber-flatlay-torn.jpg', status:'regen', note:'Sub-line reads "Ccoarabeer". Regenerate.'},
-  {sec:'flatlay', flav:'mint',     type:'img', title:'Mint · torn reveal',     file:'assets/img/mint/flatlay-torn.png',     thumb:'assets/thumbs/mint-flatlay-torn.jpg',     status:'regen', note:'Logo tail warped; sub-line clean.'},
-  {sec:'flatlay', flav:'rosemary', type:'img', title:'Rosemary · torn reveal', file:'assets/img/rosemary/flatlay-torn.png', thumb:'assets/thumbs/rosemary-flatlay-torn.jpg', status:'regen', note:'"Ressmmary" warp in sub-line.'},
+  {sec:'flatlay', flav:'lemon',    type:'img', title:'Lemon · torn reveal',    file:'assets/img/lemon/flatlay-torn.png',    thumb:'assets/thumbs/lemon-flatlay-torn.jpg',    status:'regen', order:13, note:'Logo + tagline warped ("ORGAING… REREBSHING").'},
+  {sec:'flatlay', flav:'cucumber', type:'img', title:'Cucumber · torn reveal', file:'assets/img/cucumber/flatlay-torn.png', thumb:'assets/thumbs/cucumber-flatlay-torn.jpg', status:'regen', order:14, note:'Sub-line reads "Ccoarabeer". Regenerate.'},
+  {sec:'flatlay', flav:'mint',     type:'img', title:'Mint · torn reveal',     file:'assets/img/mint/flatlay-torn.png',     thumb:'assets/thumbs/mint-flatlay-torn.jpg',     status:'regen', order:15, note:'Logo tail warped; sub-line clean.'},
+  {sec:'flatlay', flav:'rosemary', type:'img', title:'Rosemary · torn reveal', file:'assets/img/rosemary/flatlay-torn.png', thumb:'assets/thumbs/rosemary-flatlay-torn.jpg', status:'regen', order:16, note:'"Ressmmary" warp in sub-line.'},
 
   // --- POSTERS & INFOGRAPHICS ---
-  {sec:'poster', flav:'lemon',    type:'img', title:'Stay Hydrated · Lemon',    file:'assets/img/lemon/poster-hydrated.png',    thumb:'assets/thumbs/lemon-poster-hydrated.jpg',    status:'review', note:'Layout type clean; can micro-copy soft.'},
-  {sec:'poster', flav:'cucumber', type:'img', title:'Stay Hydrated · Cucumber', file:'assets/img/cucumber/poster-hydrated.png', thumb:'assets/thumbs/cucumber-poster-hydrated.jpg', status:'review', note:'Layout clean; can sub-line garbled.'},
-  {sec:'poster', flav:'mint',     type:'img', title:'Stay Hydrated · Mint',     file:'assets/img/mint/poster-hydrated.png',     thumb:'assets/thumbs/mint-poster-hydrated.jpg',     status:'review', note:'Layout clean; can tagline soft.'},
-  {sec:'poster', flav:'rosemary', type:'img', title:'Stay Hydrated · Rosemary', file:'assets/img/rosemary/poster-hydrated.png', thumb:'assets/thumbs/rosemary-poster-hydrated.jpg', status:'review', note:'"Infussd" on can; layout type clean.'},
-  {sec:'poster', flav:'lemon',    type:'img', title:'Benefits callout · Lemon',    file:'assets/img/lemon/infographic.png',    thumb:'assets/thumbs/lemon-infographic.jpg',    status:'regen', note:'Can tagline garbled behind callouts.'},
-  {sec:'poster', flav:'cucumber', type:'img', title:'Benefits callout · Cucumber', file:'assets/img/cucumber/infographic.png', thumb:'assets/thumbs/cucumber-infographic.jpg', status:'regen', note:'"CUCUINBIER" warp on can.'},
-  {sec:'poster', flav:'all', type:'img', title:'Healthy Living · 3-can',  file:'assets/img/range/poster-healthy-living.png', thumb:'assets/thumbs/range-poster-healthy-living.jpg', status:'regen', note:'Brand name renders "Twisty Waters"; flavour descriptors garbled.'},
-  {sec:'poster', flav:'all', type:'img', title:'Poolside · 4-can',        file:'assets/img/range/poster-poolside.png',       thumb:'assets/thumbs/range-poster-poolside.jpg',       status:'regen', note:'Cans read "Healthy Living" instead of Twisty Water.'},
+  {sec:'poster', flav:'lemon',    type:'img', title:'Stay Hydrated · Lemon',    file:'assets/img/lemon/poster-hydrated.png',    thumb:'assets/thumbs/lemon-poster-hydrated.jpg',    status:'review', order:17, note:'Layout type clean; can micro-copy soft.'},
+  {sec:'poster', flav:'cucumber', type:'img', title:'Stay Hydrated · Cucumber', file:'assets/img/cucumber/poster-hydrated.png', thumb:'assets/thumbs/cucumber-poster-hydrated.jpg', status:'review', order:18, note:'Layout clean; can sub-line garbled.'},
+  {sec:'poster', flav:'mint',     type:'img', title:'Stay Hydrated · Mint',     file:'assets/img/mint/poster-hydrated.png',     thumb:'assets/thumbs/mint-poster-hydrated.jpg',     status:'review', order:19, note:'Layout clean; can tagline soft.'},
+  {sec:'poster', flav:'rosemary', type:'img', title:'Stay Hydrated · Rosemary', file:'assets/img/rosemary/poster-hydrated.png', thumb:'assets/thumbs/rosemary-poster-hydrated.jpg', status:'review', order:20, note:'"Infussd" on can; layout type clean.'},
+  {sec:'poster', flav:'lemon',    type:'img', title:'Benefits callout · Lemon',    file:'assets/img/lemon/infographic.png',    thumb:'assets/thumbs/lemon-infographic.jpg',    status:'regen', order:21, note:'Can tagline garbled behind callouts.'},
+  {sec:'poster', flav:'cucumber', type:'img', title:'Benefits callout · Cucumber', file:'assets/img/cucumber/infographic.png', thumb:'assets/thumbs/cucumber-infographic.jpg', status:'regen', order:22, note:'"CUCUINBIER" warp on can.'},
+  {sec:'poster', flav:'all', type:'img', title:'Healthy Living · 3-can',  file:'assets/img/range/poster-healthy-living.png', thumb:'assets/thumbs/range-poster-healthy-living.jpg', status:'regen', order:25, note:'Brand name renders "Twisty Waters"; flavour descriptors garbled.'},
+  {sec:'poster', flav:'all', type:'img', title:'Poolside · 4-can',        file:'assets/img/range/poster-poolside.png',       thumb:'assets/thumbs/range-poster-poolside.jpg',       status:'regen', order:26, note:'Cans read "Healthy Living" instead of Twisty Water.'},
 
   // --- FILMS + RANGE ---
-  {sec:'film', flav:'all', type:'video', title:'Cooler scene · 01',        file:'assets/video/cooler-summer-01.mp4',  thumb:'assets/posters/cooler-summer-01.jpg',  status:'review', note:'Reads clean at distance; label micro-copy busy up close.'},
-  {sec:'film', flav:'all', type:'video', title:'Cooler scene · 02',        file:'assets/video/cooler-summer-02.mp4',  thumb:'assets/posters/cooler-summer-02.jpg',  status:'review', note:'Transcoded from HEVC .mov for browser playback.'},
-  {sec:'film', flav:'all', type:'video', title:'Lineup ident · float',     file:'assets/video/lineup-float.mp4',      thumb:'assets/posters/lineup-float.jpg',      status:'regen',  note:'Logo warped ("Twistylvlaten") on all four cans.'},
-  {sec:'film', flav:'all', type:'img',   title:'Lineup still · float',     file:'assets/img/range/lineup-float.png',  thumb:'assets/thumbs/range-lineup-float.jpg', status:'regen',  note:'Same warp as ident — regenerate as matched pair.'},
-  {sec:'film', flav:'all', type:'video', title:'Condensation b-roll · 10s',file:'assets/video/broll-condensation.mp4',thumb:'assets/posters/broll-condensation.jpg',status:'ready',  note:'No visible text — safe cutaway for any edit.'},
+  {sec:'film', flav:'all', type:'video', title:'Cooler scene · 01',        file:'assets/video/cooler-summer-01.mp4',  thumb:'assets/posters/cooler-summer-01.jpg',  status:'review', order:27, note:'Reads clean at distance; label micro-copy busy up close.'},
+  {sec:'film', flav:'all', type:'video', title:'Cooler scene · 02',        file:'assets/video/cooler-summer-02.mp4',  thumb:'assets/posters/cooler-summer-02.jpg',  status:'review', order:28, note:'Transcoded from HEVC .mov for browser playback.'},
+  {sec:'film', flav:'all', type:'video', title:'Lineup ident · float',     file:'assets/video/lineup-float.mp4',      thumb:'assets/posters/lineup-float.jpg',      status:'regen',  order:23, note:'Logo warped ("Twistylvlaten") on all four cans.'},
+  {sec:'film', flav:'all', type:'img',   title:'Lineup still · float',     file:'assets/img/range/lineup-float.png',  thumb:'assets/thumbs/range-lineup-float.jpg', status:'regen',  order:24, note:'Same warp as ident — regenerate as matched pair.'},
+  {sec:'film', flav:'all', type:'video', title:'Condensation b-roll · 10s',file:'assets/video/broll-condensation.mp4',thumb:'assets/posters/broll-condensation.jpg',status:'ready',  order:29, note:'No visible text — safe cutaway for any edit.'},
 ];
 
 const BADGE = {ready:'Feed-ready', review:'Review', regen:'Regenerate'};
@@ -324,39 +308,30 @@ let flavour = 'all', regenOnly = false, visible = [];
 
 function render(){
   visible = [];
-  document.querySelectorAll('.grid').forEach(g=>{
-    const sec = g.dataset.sec;
-    g.innerHTML = '';
-    const items = ASSETS.filter(a =>
-      a.sec===sec &&
-      (flavour==='all' || a.flav===flavour || a.flav==='all') &&
-      (!regenOnly || a.status==='regen')
-    );
-    items.forEach(a=>{
-      const i = visible.push(a)-1;
-      const card = document.createElement('article');
-      card.className = 'card';
-      card.tabIndex = 0;
-      card.innerHTML = `
-        <div class="media">
-          <img src="${a.thumb}" alt="${a.title}" loading="lazy">
-          ${a.type==='video' ? '<div class="play"><span>▶</span></div>' : ''}
-        </div>
-        <div class="meta">
-          <div><span class="t">${a.title}</span><span class="f">${a.file.split('/').pop()}</span></div>
-          <span class="badge ${a.status}">${BADGE[a.status]}</span>
-        </div>`;
-      card.addEventListener('click', ()=>openLB(i));
-      card.addEventListener('keydown', e=>{ if(e.key==='Enter') openLB(i); });
-      g.appendChild(card);
-    });
-    if(!items.length){
-      const e = document.createElement('p');
-      e.className='empty'; e.style.display='block';
-      e.textContent = regenOnly ? 'Nothing in the regeneration queue here — this set is clean.' : 'No assets in this set yet.';
-      g.appendChild(e);
-    }
+  const grid = document.getElementById('feedGrid');
+  grid.innerHTML = '';
+  const items = ASSETS
+    .filter(a => (flavour==='all' || a.flav===flavour || a.flav==='all') && (!regenOnly || a.status==='regen'))
+    .sort((a,b) => a.order-b.order);
+  items.forEach(a=>{
+    const i = visible.push(a)-1;
+    const tile = document.createElement('article');
+    tile.className = 'ig-tile';
+    tile.tabIndex = 0;
+    tile.dataset.order = a.order;
+    tile.innerHTML = `
+      <img src="${a.thumb}" alt="${a.title}" loading="lazy">
+      ${a.type==='video' ? '<span class="play">▶</span>' : ''}`;
+    tile.addEventListener('click', ()=>openLB(i));
+    tile.addEventListener('keydown', e=>{ if(e.key==='Enter') openLB(i); });
+    grid.appendChild(tile);
   });
+  if(!items.length){
+    const e = document.createElement('p');
+    e.className = 'feed-empty';
+    e.textContent = regenOnly ? 'Nothing in the regeneration queue — this set is clean.' : 'No assets match this filter yet.';
+    grid.appendChild(e);
+  }
   reveal();
 }
 
@@ -365,12 +340,12 @@ let io;
 function reveal(){
   if(io) io.disconnect();
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const cards = document.querySelectorAll('.card');
-  if(reduce){ cards.forEach(c=>c.classList.add('shown')); return; }
+  const tiles = document.querySelectorAll('.ig-tile');
+  if(reduce){ tiles.forEach(t=>t.classList.add('shown')); return; }
   io = new IntersectionObserver(es=>{
     es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('shown'); io.unobserve(e.target); } });
   },{threshold:.12});
-  cards.forEach(c=>io.observe(c));
+  tiles.forEach(t=>io.observe(t));
 }
 
 /* ---------- flavour world ---------- */
