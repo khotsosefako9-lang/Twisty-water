@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Twisty Water — Launch Asset Studio</title>
+<title>Twisty Water</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=Kaushan+Script&display=swap" rel="stylesheet">
@@ -272,7 +272,7 @@ footer{
 <section class="archive-section">
   <div class="archive-head">
     <h2>Twisty Water Graphics</h2>
-    <p class="archive-note">Reference library — serve shots, extra flavour assets, campaign films and one-off graphics that don't have a slot in the locked feed rows above. Always shown here regardless of the flavour filter.</p>
+    <p class="archive-note">Extra brand graphics and campaign visuals.</p>
   </div>
   <div class="archive-body">
     <div class="ig-grid" id="graphicsGrid"></div>
@@ -291,8 +291,7 @@ footer{
 <footer>
   <div class="foot-in">
     <span class="script">Twisty Water</span>
-    <small>Visual library · organic launch · assets generated with Higgsfield (Kling 3.0 Turbo / Nano Banana 2)<br>
-    Badge key — <b>Feed-ready:</b> post as-is · <b>Review:</b> fine at feed size, check micro-copy · <b>Regenerate:</b> see REGENERATE-QUEUE.md</small>
+    <small>Twisty Water visual library.</small>
   </div>
 </footer>
 
@@ -306,24 +305,23 @@ footer{
    once it's set from the calendar; the grid always sorts by it.
    pinned: shows a 📌 badge and sits in the pinned top row next to
    the flavour carousel.
+   hideFromFullRange: excluded from the Full range view (so it never
+   disturbs the locked rows below), but still shows up when its own
+   flavour filter is active — this is how each flavour's complete set
+   (pour video, poster, infographic, torn-paper, serve) stays equal
+   even though Full range only has room for three of four flavours
+   per row.
 
-   LOCKED 5-row layout — one content type per row, no leftovers:
+   LOCKED 5-row layout for Full range — one content type per row, no
+   leftovers:
    Row 1  pinned panorama   — carousel (synthetic) + 2 static crops
-                              (Full range only — hidden on every flavour filter)
    Row 2  pour videos       — lemon · mint · rosemary
    Row 3  Stay Hydrated     — lemon · cucumber · rosemary
    Row 4  splash infographic— lemon · cucumber · rosemary
    Row 5  torn-paper        — lemon · cucumber · rosemary
-   Every row is exactly 3 same-type tiles; nothing else renders here.
-   The serve shots live in the separate "Twisty Water Graphics" archive
-   below (see GRAPHICS), not in the locked feed rows. Assets with no
-   slot in this layout (cucumber pour-video, mint serve/poster/flatlay,
-   the old range posters, the film reel) were removed here and moved
-   to assets/unused/ — files kept on disk, most of them surfaced again
-   in GRAPHICS. The old pour-still images and the original rosemary
-   poster-hydrated were deleted outright per the regen brief; the
-   carousel's flavour slides now reuse the pour posters instead of the
-   deleted pour-still thumbs.
+   Every row is exactly 3 same-type tiles; nothing else renders in
+   Full range. Selecting a single flavour instead shows every asset
+   for that flavour, hidden ones included, with no row structure.
 ========================================================= */
 const ASSETS = [
   // --- ROW 1: PINNED PANORAMA (2 static crops; 3rd tile is the carousel, built separately) ---
@@ -349,30 +347,38 @@ const ASSETS = [
   {sec:'flatlay', flav:'lemon',    type:'img', title:'Lemon · torn reveal',    file:'assets/img/lemon/flatlay-torn.png',    thumb:'assets/thumbs/lemon-flatlay-torn.jpg',    status:'regen', order:12, note:'Logo + tagline warped ("ORGAING… REREBSHING").'},
   {sec:'flatlay', flav:'cucumber', type:'img', title:'Cucumber · torn reveal', file:'assets/img/cucumber/flatlay-torn.png', thumb:'assets/thumbs/cucumber-flatlay-torn.jpg', status:'regen', order:13, note:'Sub-line reads "Ccoarabeer". Regenerate.'},
   {sec:'flatlay', flav:'rosemary', type:'img', title:'Rosemary · torn reveal', file:'assets/img/rosemary/flatlay-torn.png', thumb:'assets/thumbs/rosemary-flatlay-torn.jpg', status:'regen', order:14, note:'"Ressmmary" warp in sub-line.'},
+
+  // --- HIDDEN FROM FULL RANGE, SHOWN ON THEIR OWN FLAVOUR FILTER ---
+  // These complete each flavour's set (one pour video, one Stay Hydrated
+  // poster, one splash infographic, one torn-paper shot, one serve shot)
+  // without disturbing the locked rows above. order values only need to
+  // sort correctly within their own flavour's filtered list — they never
+  // mix with another flavour's items in a single sort, and hideFromFullRange
+  // keeps them out of the Full range view entirely.
+  {sec:'pour', flav:'cucumber', type:'video', title:'Cucumber pour · 5s', file:'assets/video/pour-cucumber.mp4', thumb:'assets/posters/pour-cucumber.jpg', status:'regen', order:6.5, hideFromFullRange:true, note:'Logo warped ("Trinity Water" read). Keep off main feed.'},
+  {sec:'poster', flav:'mint', type:'img', title:'Stay Hydrated · Mint', file:'assets/img/mint/poster-hydrated.png', thumb:'assets/thumbs/mint-poster-hydrated.jpg', status:'review', order:17, hideFromFullRange:true, note:'Layout clean; can tagline soft.'},
+  {sec:'flatlay', flav:'mint', type:'img', title:'Mint · torn reveal', file:'assets/img/mint/flatlay-torn.png', thumb:'assets/thumbs/mint-flatlay-torn.jpg', status:'regen', order:18, hideFromFullRange:true, note:'Logo tail warped; sub-line clean.'},
+  {sec:'serve', flav:'lemon',    type:'img', title:'Lemon serve',    file:'assets/img/lemon/serve.png',    thumb:'assets/thumbs/lemon-serve.jpg',    status:'review', order:20, hideFromFullRange:true, note:'Micro-copy soft; hero text clean at feed size.'},
+  {sec:'serve', flav:'cucumber', type:'img', title:'Cucumber serve', file:'assets/img/cucumber/serve.png', thumb:'assets/thumbs/cucumber-serve.jpg', status:'regen',  order:14.5, hideFromFullRange:true, note:'Sub-line garbled ("CUCJUB8"). Regenerate.'},
+  {sec:'serve', flav:'mint',     type:'img', title:'Mint serve',     file:'assets/img/mint/serve.png',     thumb:'assets/thumbs/mint-serve.jpg',     status:'review', order:19, hideFromFullRange:true, note:'Logo tail ambiguous; tagline soft.'},
+  {sec:'serve', flav:'rosemary', type:'img', title:'Rosemary serve', file:'assets/img/rosemary/serve.png', thumb:'assets/thumbs/rosemary-serve.jpg', status:'review', order:21, hideFromFullRange:true, note:'"Infussd" typo in sub-line; small at feed size.'},
 ];
 
 /* =========================================================
    TWISTY WATER GRAPHICS — reference archive, not the feed.
-   Serve shots (moved out of the locked rows), the assets held out of
-   the feed in assets/unused/ that are still worth showing, and one-off
-   graphics like the streetwear collage. No order/pinned/row-purity
-   rules apply here; it's a static browse section, always fully shown
-   regardless of the flavour filter or regen-only toggle.
+   Extra campaign graphics and films with no slot in the locked rows
+   or the per-flavour sets above. Deliberate order, not sortable: the
+   three-can group posters plus the collage lead, then the three
+   campaign films close it out as their own row. No flavour or
+   regen-only filtering applies here; it's always fully shown.
 ========================================================= */
 const GRAPHICS = [
-  {flav:'lemon',    type:'img', title:'Lemon serve',    file:'assets/img/lemon/serve.png',    thumb:'assets/thumbs/lemon-serve.jpg',    status:'review', note:'Micro-copy soft; hero text clean at feed size.'},
-  {flav:'cucumber', type:'img', title:'Cucumber serve', file:'assets/img/cucumber/serve.png', thumb:'assets/thumbs/cucumber-serve.jpg', status:'regen',  note:'Sub-line garbled ("CUCJUB8"). Regenerate.'},
-  {flav:'rosemary', type:'img', title:'Rosemary serve', file:'assets/img/rosemary/serve.png', thumb:'assets/thumbs/rosemary-serve.jpg', status:'review', note:'"Infussd" typo in sub-line; small at feed size.'},
-  {flav:'mint', type:'img', title:'Mint serve', file:'assets/unused/img/mint/serve.png', thumb:'assets/unused/thumbs/mint-serve.jpg', status:'review', note:'Logo tail ambiguous; tagline soft. Held out of the feed\'s serve row (no mint slot there).'},
-  {flav:'mint', type:'img', title:'Stay Hydrated · Mint', file:'assets/unused/img/mint/poster-hydrated.png', thumb:'assets/unused/thumbs/mint-poster-hydrated.jpg', status:'review', note:'Layout clean; can tagline soft. Held out of the feed\'s poster row (lemon/cucumber/rosemary only).'},
-  {flav:'mint', type:'img', title:'Mint · torn reveal', file:'assets/unused/img/mint/flatlay-torn.png', thumb:'assets/unused/thumbs/mint-flatlay-torn.jpg', status:'regen', note:'Logo tail warped. Held out of the feed\'s torn-paper row (lemon/cucumber/rosemary only).'},
   {flav:'all', type:'img', title:'Healthy Living · 3-can', file:'assets/unused/img/range/poster-healthy-living.png', thumb:'assets/unused/thumbs/range-poster-healthy-living.jpg', status:'regen', note:'Brand name renders "Twisty Waters"; flavour descriptors garbled.'},
+  {flav:'all', type:'img', title:'Streetwear collage', file:'assets/unused/collage-streetwear.png', thumb:'assets/thumbs/collage-streetwear.jpg', status:'review', note:'Torn-paper streetwear treatment, all 4 cans and the Joburg skyline. Clean headline and can labels; bottom-corner tag reads "twisty waters" (plural).'},
   {flav:'all', type:'img', title:'Poolside · 4-can', file:'assets/unused/img/range/poster-poolside.png', thumb:'assets/unused/thumbs/range-poster-poolside.jpg', status:'regen', note:'Cans read "Healthy Living" instead of Twisty Water.'},
-  {flav:'all', type:'img', title:'Lineup still · float', file:'assets/unused/img/range/lineup-float.png', thumb:'assets/unused/thumbs/range-lineup-float.jpg', status:'regen', note:'Logo warped ("Twistylvlaten") — matched pair with the lineup ident video.'},
   {flav:'all', type:'video', title:'Cooler scene · 01', file:'assets/unused/video/cooler-summer-01.mp4', thumb:'assets/unused/posters/cooler-summer-01.jpg', status:'review', note:'Reads clean at distance; label micro-copy busy up close.'},
   {flav:'all', type:'video', title:'Cooler scene · 02', file:'assets/unused/video/cooler-summer-02.mp4', thumb:'assets/unused/posters/cooler-summer-02.jpg', status:'review', note:'Transcoded from HEVC .mov for browser playback.'},
   {flav:'all', type:'video', title:'Condensation b-roll · 10s', file:'assets/unused/video/broll-condensation.mp4', thumb:'assets/unused/posters/broll-condensation.jpg', status:'ready', note:'No visible text — safe cutaway for any edit.'},
-  {flav:'all', type:'img', title:'Streetwear collage', file:'assets/unused/collage-streetwear.png', thumb:'assets/thumbs/collage-streetwear.jpg', status:'review', note:'Torn-paper streetwear treatment, all 4 cans + Joburg skyline. Clean headline and can labels; bottom-corner tag reads "twisty waters" (plural).'},
 ];
 
 const BADGE = {ready:'Feed-ready', review:'Review', regen:'Regenerate'};
@@ -455,7 +461,7 @@ function render(){
   grid.innerHTML = '';
   if(flavour==='all') grid.appendChild(buildCarouselTile());
   const items = ASSETS
-    .filter(a => (flavour==='all' ? true : a.flav===flavour) && (!regenOnly || a.status==='regen'))
+    .filter(a => (flavour==='all' ? !a.hideFromFullRange : a.flav===flavour) && (!regenOnly || a.status==='regen'))
     .sort((a,b) => a.order-b.order);
   items.forEach(a=>{
     const i = visible.push(a)-1;
