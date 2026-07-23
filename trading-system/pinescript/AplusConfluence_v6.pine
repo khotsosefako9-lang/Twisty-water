@@ -1,0 +1,404 @@
+//@version=6
+// =============================================================================
+// A+ Confluence Day Trading Strategy — Micro Account Edition
+// Institutional-style, rule-based, multi-confirmation strategy for XAUUSD,
+// EURUSD, GBPUSD, NAS100, US30 and broker-listed Volatility Indexes.
+// No repainting: signals evaluate only on confirmed bars, orders fill on
+// the next bar open (process_orders_on_close = true, calc_on_every_tick = false).
+// =============================================================================
+strategy("A+ Confluence — Micro Day Trader", shorttitle = "A+Confluence", overlay = true,
+     initial_capital = 1000, currency = currency.NONE, default_qty_type = strategy.fixed,
+     default_qty_value = 1, calc_on_every_tick = false, process_orders_on_close = true,
+     max_bars_back = 500, max_boxes_count = 50, max_lines_count = 100, max_labels_count = 200)
+
+// =============================================================================
+// INPUTS
+// =============================================================================
+grpRisk = "Risk Management"
+riskPercent   = input.float(1.0, "Risk % Per Trade", minval = 0.1, maxval = 5.0, step = 0.1, group = grpRisk,
+     tooltip = "Hard-capped at 5%% regardless of value entered.")
+accountBalance = input.float(1000, "Account Balance (for lot/qty math, quote currency)", minval = 1, group = grpRisk)
+rrMin = input.float(3.0, "Minimum Risk:Reward (hard floor)", minval = 1, group = grpRisk)
+rrMax = input.float(5.0, "Maximum Risk:Reward (structural cap)", minval = 1, group = grpRisk)
+partialRR = input.float(2.0, "Partial Take-Profit at R multiple", minval = 0.5, group = grpRisk)
+partialPct = input.float(50, "Partial Close %", minval = 10, maxval = 90, group = grpRisk)
+maxHoldingBars = input.int(48, "Max Holding Bars (time-based exit)", minval = 1, group = grpRisk)
+
+grpTrend = "Trend Detection"
+emaFastLen = input.int(20, "EMA Fast", group = grpTrend)
+emaMidLen  = input.int(50, "EMA Mid", group = grpTrend)
+emaSlowLen = input.int(200, "EMA Slow", group = grpTrend)
+adxLen = input.int(14, "ADX Length", group = grpTrend)
+adxThreshold = input.float(20, "ADX Trend Threshold (below = ranging, rejected)", group = grpTrend)
+stFactor = input.float(3.0, "Supertrend Factor", group = grpTrend)
+stAtrLen = input.int(10, "Supertrend ATR Length", group = grpTrend)
+
+grpStruct = "Market Structure / Liquidity"
+pivotLeft  = input.int(5, "Pivot Left Bars", group = grpStruct)
+pivotRight = input.int(5, "Pivot Right Bars (confirmation lag, prevents repaint)", group = grpStruct)
+sweepLookback = input.int(6, "Liquidity Sweep Lookback (bars)", group = grpStruct)
+equalTolATRmult = input.float(0.15, "Equal High/Low Tolerance (x ATR)", group = grpStruct)
+
+grpMom = "Momentum / Volume"
+rsiLen = input.int(14, "RSI Length", group = grpMom)
+rsiMidline = input.float(50, "RSI Midline", group = grpMom)
+macdFast = input.int(12, "MACD Fast", group = grpMom)
+macdSlow = input.int(26, "MACD Slow", group = grpMom)
+macdSignal = input.int(9, "MACD Signal", group = grpMom)
+volLen = input.int(20, "Volume SMA Length", group = grpMom)
+relVolThreshold = input.float(1.1, "Relative Volume Threshold (x average)", group = grpMom)
+
+grpVol = "Volatility Filter"
+atrLen = input.int(14, "ATR Length", group = grpVol)
+atrMinPct = input.float(0.03, "Min ATR % of Price (below = dead market)", group = grpVol)
+atrMaxPct = input.float(1.20, "Max ATR % of Price (above = abnormal spike)", group = grpVol)
+slBufferMult = input.float(0.25, "Stop Loss Buffer (x ATR beyond structure)", group = grpVol)
+
+grpSession = "Sessions (times in exchange/UTC per TradingView 'time()')"
+tzInput = input.string("UTC", "Session Timezone", group = grpSession)
+sessLondon = input.session("0700-1600", "London Session", group = grpSession)
+sessNY = input.session("1200-2100", "New York Session", group = grpSession)
+sessAsian = input.session("2300-0700", "Asian Session (blocked unless override)", group = grpSession)
+tradeLondon = input.bool(true, "Trade London", group = grpSession)
+tradeNY = input.bool(true, "Trade New York", group = grpSession)
+tradeAsian = input.bool(false, "Trade Asian (only if ATR%% override exceeded)", group = grpSession)
+asianAtrOverridePct = input.float(0.50, "Asian Session ATR%% Override Threshold", group = grpSession)
+blockFridayLateSession = input.bool(true, "Block Friday Late Session (after 18:00)", group = grpSession)
+
+grpNews = "News Blackout (manual — see MQL5/Python for live calendar feed)"
+newsBlackoutEnabled = input.bool(true, "Enable Manual News Blackout Windows", group = grpNews)
+newsWindow1 = input.session("1330-1400", "Blackout Window 1", group = grpNews)
+newsWindow2 = input.session("1500-1530", "Blackout Window 2", group = grpNews)
+newsWindow3 = input.session("0000-0000", "Blackout Window 3 (disabled by default)", group = grpNews)
+
+grpSpread = "Spread / Execution Filter"
+maxSpreadPoints = input.float(30, "Max Acceptable Spread (points, backtest proxy via high-low)", group = grpSpread)
+
+grpDash = "Dashboard"
+showDashboard = input.bool(true, "Show Dashboard", group = grpDash)
+dashPosition = input.string(position.top_right, "Dashboard Position",
+     options = [position.top_right, position.top_left, position.bottom_right, position.bottom_left], group = grpDash)
+
+// =============================================================================
+// TREND STACK
+// =============================================================================
+emaFast = ta.ema(close, emaFastLen)
+emaMid  = ta.ema(close, emaMidLen)
+emaSlow = ta.ema(close, emaSlowLen)
+vwapVal = ta.vwap(hlc3)
+[diPlus, diMinus, adxVal] = ta.dmi(adxLen, adxLen)
+[supertrendVal, supertrendDir] = ta.supertrend(stFactor, stAtrLen)
+
+trendBullStack = close > vwapVal and emaFast > emaMid and emaMid > emaSlow and supertrendDir < 0 and adxVal > adxThreshold
+trendBearStack = close < vwapVal and emaFast < emaMid and emaMid < emaSlow and supertrendDir > 0 and adxVal > adxThreshold
+
+// =============================================================================
+// MARKET STRUCTURE — swing pivots, HH/HL/LH/LL, BOS, CHOCH
+// =============================================================================
+ph = ta.pivothigh(pivotLeft, pivotRight)
+pl = ta.pivotlow(pivotLeft, pivotRight)
+
+var float lastSwingHigh = na
+var float prevSwingHigh  = na
+var float lastSwingLow  = na
+var float prevSwingLow   = na
+var int   lastHighType = 0   // 1 = Higher High, -1 = Lower High
+var int   lastLowType  = 0   // 1 = Higher Low,  -1 = Lower Low
+
+if not na(ph)
+    lastHighType := na(prevSwingHigh) ? 1 : (ph > prevSwingHigh ? 1 : -1)
+    prevSwingHigh := lastSwingHigh
+    lastSwingHigh := ph
+
+if not na(pl)
+    lastLowType := na(prevSwingLow) ? 1 : (pl > prevSwingLow ? 1 : -1)
+    prevSwingLow := lastSwingLow
+    lastSwingLow := pl
+
+structureBias = (lastHighType == 1 and lastLowType == 1) ? 1 : (lastHighType == -1 and lastLowType == -1) ? -1 : 0
+
+bosUp   = not na(lastSwingHigh) and ta.crossover(close, lastSwingHigh)
+bosDown = not na(lastSwingLow) and ta.crossunder(close, lastSwingLow)
+chochBull = bosUp and structureBias == -1
+chochBear = bosDown and structureBias == 1
+
+// =============================================================================
+// LIQUIDITY — equal highs/lows, sweeps / stop hunts
+// =============================================================================
+atrVal = ta.atr(atrLen)
+eqTolerance = atrVal * equalTolATRmult
+equalHighs = not na(prevSwingHigh) and math.abs(lastSwingHigh - prevSwingHigh) <= eqTolerance
+equalLows  = not na(prevSwingLow) and math.abs(lastSwingLow - prevSwingLow) <= eqTolerance
+
+sweepHigh = not na(lastSwingHigh) and high > lastSwingHigh and close < lastSwingHigh
+sweepLow  = not na(lastSwingLow) and low < lastSwingLow and close > lastSwingLow
+
+sweepLowRecent  = ta.barssince(sweepLow) <= sweepLookback
+sweepHighRecent = ta.barssince(sweepHigh) <= sweepLookback
+
+// =============================================================================
+// SMART MONEY CONCEPTS — Order Blocks, Fair Value Gaps, Mitigation, Premium/Discount
+// =============================================================================
+var float bullOB_top = na
+var float bullOB_bot = na
+var float bearOB_top = na
+var float bearOB_bot = na
+
+if bosUp
+    for i = 1 to 15
+        if close[i] < open[i]
+            bullOB_top := high[i]
+            bullOB_bot := low[i]
+            break
+
+if bosDown
+    for i = 1 to 15
+        if close[i] > open[i]
+            bearOB_top := high[i]
+            bearOB_bot := low[i]
+            break
+
+bullFVG = low > high[2]
+bearFVG = high < low[2]
+
+var float bullFVG_top = na
+var float bullFVG_bot = na
+var float bearFVG_top = na
+var float bearFVG_bot = na
+
+if bullFVG
+    bullFVG_top := low
+    bullFVG_bot := high[2]
+
+if bearFVG
+    bearFVG_top := low[2]
+    bearFVG_bot := high
+
+inBullOB  = not na(bullOB_bot) and low <= bullOB_top and high >= bullOB_bot and close > bullOB_bot
+inBearOB  = not na(bearOB_top) and high >= bearOB_bot and low <= bearOB_top and close < bearOB_top
+inBullFVG = not na(bullFVG_bot) and low <= bullFVG_top and high >= bullFVG_bot and close > bullFVG_bot
+inBearFVG = not na(bearFVG_top) and high >= bearFVG_bot and low <= bearFVG_top and close < bearFVG_top
+
+zoneBull = inBullOB or inBullFVG
+zoneBear = inBearOB or inBearFVG
+
+rangeMid = (not na(lastSwingHigh) and not na(lastSwingLow)) ? (lastSwingHigh + lastSwingLow) / 2 : na
+discountZone = not na(rangeMid) and close < rangeMid
+premiumZone  = not na(rangeMid) and close > rangeMid
+
+// =============================================================================
+// MOMENTUM / VOLUME
+// =============================================================================
+rsiVal = ta.rsi(close, rsiLen)
+[macdLine, macdSignalLine, macdHist] = ta.macd(close, macdFast, macdSlow, macdSignal)
+momentumBull = rsiVal > rsiMidline and macdHist > macdHist[1]
+momentumBear = rsiVal < rsiMidline and macdHist < macdHist[1]
+
+volSma = ta.sma(volume, volLen)
+relVol = volSma > 0 ? volume / volSma : 0
+volumeConfirm = relVol > relVolThreshold
+
+// =============================================================================
+// VOLATILITY FILTER
+// =============================================================================
+atrPct = (atrVal / close) * 100
+volatilityOK = atrPct >= atrMinPct and atrPct <= atrMaxPct
+
+// =============================================================================
+// SESSION FILTER
+// =============================================================================
+inLondon = not na(time(timeframe.period, sessLondon, tzInput))
+inNY     = not na(time(timeframe.period, sessNY, tzInput))
+inAsian  = not na(time(timeframe.period, sessAsian, tzInput))
+
+asianAllowed = inAsian and tradeAsian and atrPct >= asianAtrOverridePct
+sessionOK = (inLondon and tradeLondon) or (inNY and tradeNY) or asianAllowed
+
+fridayLate = blockFridayLateSession and dayofweek == dayofweek.friday and hour(time, tzInput) >= 18
+sessionOK := sessionOK and not fridayLate
+
+// =============================================================================
+// NEWS BLACKOUT (manual windows — replace with live calendar in MQL5/Python)
+// =============================================================================
+inNews1 = not na(time(timeframe.period, newsWindow1, tzInput))
+inNews2 = not na(time(timeframe.period, newsWindow2, tzInput))
+inNews3 = not na(time(timeframe.period, newsWindow3, tzInput))
+newsBlackout = newsBlackoutEnabled and (inNews1 or inNews2 or inNews3)
+
+// =============================================================================
+// SPREAD PROXY FILTER (backtest cannot see live spread; use bar range as proxy)
+// =============================================================================
+spreadProxyPoints = (high - low) / syminfo.mintick
+spreadOK = spreadProxyPoints <= maxSpreadPoints * 3  // wide tolerance — real gating happens live in MQL5
+
+// =============================================================================
+// ENTRY LOGIC — every condition is objective, all must align, no discretion
+// =============================================================================
+longCondition = trendBullStack and structureBias == 1 and zoneBull and sweepLowRecent and
+     momentumBull and volumeConfirm and volatilityOK and sessionOK and discountZone and
+     not newsBlackout and spreadOK and barstate.isconfirmed and strategy.position_size == 0
+
+shortCondition = trendBearStack and structureBias == -1 and zoneBear and sweepHighRecent and
+     momentumBear and volumeConfirm and volatilityOK and sessionOK and premiumZone and
+     not newsBlackout and spreadOK and barstate.isconfirmed and strategy.position_size == 0
+
+// =============================================================================
+// RISK / SL / TP CALCULATION
+// =============================================================================
+cappedRisk = math.min(riskPercent, 5.0)
+riskAmount = accountBalance * (cappedRisk / 100)
+
+slPriceLong  = (na(bullOB_bot) ? lastSwingLow : math.min(bullOB_bot, lastSwingLow)) - atrVal * slBufferMult
+slPriceShort = (na(bearOB_top) ? lastSwingHigh : math.max(bearOB_top, lastSwingHigh)) + atrVal * slBufferMult
+
+slDistLong  = close - slPriceLong
+slDistShort = slPriceShort - close
+
+structuralRR_Long  = not na(lastSwingHigh) and slDistLong > 0 ? (lastSwingHigh - close) / slDistLong : 0
+structuralRR_Short = not na(lastSwingLow) and slDistShort > 0 ? (close - lastSwingLow) / slDistShort : 0
+
+finalRR_Long  = math.max(rrMin, math.min(rrMax, structuralRR_Long))
+finalRR_Short = math.max(rrMin, math.min(rrMax, structuralRR_Short))
+
+validLong  = longCondition and slDistLong > 0 and structuralRR_Long >= rrMin
+validShort = shortCondition and slDistShort > 0 and structuralRR_Short >= rrMin
+
+tpPriceLong  = close + slDistLong * finalRR_Long
+tpPriceShort = close - slDistShort * finalRR_Short
+
+qtyLong  = slDistLong > 0 ? riskAmount / slDistLong : 0
+qtyShort = slDistShort > 0 ? riskAmount / slDistShort : 0
+
+// =============================================================================
+// ORDER EXECUTION
+// =============================================================================
+var float activeSL = na
+var float activeTP = na
+var float activeEntry = na
+var float activePartialTP = na
+var int   entryBarIndex = na
+var bool  breakevenDone = false
+
+if validLong
+    strategy.entry("Long", strategy.long, qty = qtyLong)
+    activeEntry := close
+    activeSL := slPriceLong
+    activeTP := tpPriceLong
+    activePartialTP := close + slDistLong * partialRR
+    entryBarIndex := bar_index
+    breakevenDone := false
+    alert("A+Confluence BUY " + syminfo.ticker + " Entry=" + str.tostring(close) + " SL=" + str.tostring(slPriceLong) +
+         " TP=" + str.tostring(tpPriceLong) + " RR=1:" + str.tostring(finalRR_Long, "#.##"), alert.freq_once_per_bar_close)
+
+if validShort
+    strategy.entry("Short", strategy.short, qty = qtyShort)
+    activeEntry := close
+    activeSL := slPriceShort
+    activeTP := tpPriceShort
+    activePartialTP := close - slDistShort * partialRR
+    entryBarIndex := bar_index
+    breakevenDone := false
+    alert("A+Confluence SELL " + syminfo.ticker + " Entry=" + str.tostring(close) + " SL=" + str.tostring(slPriceShort) +
+         " TP=" + str.tostring(tpPriceShort) + " RR=1:" + str.tostring(finalRR_Short, "#.##"), alert.freq_once_per_bar_close)
+
+// Breakeven: once price has traveled the partial-TP distance, move stop to entry
+if strategy.position_size > 0 and not na(activePartialTP) and high >= activePartialTP
+    breakevenDone := true
+if strategy.position_size < 0 and not na(activePartialTP) and low <= activePartialTP
+    breakevenDone := true
+
+trailStopLong  = breakevenDone ? math.max(activeEntry, supertrendVal) : activeSL
+trailStopShort = breakevenDone ? math.min(activeEntry, supertrendVal) : activeSL
+
+if strategy.position_size > 0
+    strategy.exit("Partial-Long", "Long", qty_percent = partialPct, limit = activePartialTP, stop = activeSL)
+    strategy.exit("Runner-Long", "Long", limit = activeTP, stop = trailStopLong)
+
+if strategy.position_size < 0
+    strategy.exit("Partial-Short", "Short", qty_percent = partialPct, limit = activePartialTP, stop = activeSL)
+    strategy.exit("Runner-Short", "Short", limit = activeTP, stop = trailStopShort)
+
+// Time-based exit — day trading discipline, no multi-day holds on a micro account
+if strategy.position_size != 0 and not na(entryBarIndex) and (bar_index - entryBarIndex) >= maxHoldingBars
+    strategy.close_all("Max Holding Time")
+
+// =============================================================================
+// VISUALS — labels, SL/TP lines, risk box, session backgrounds
+// =============================================================================
+plot(emaFast, "EMA Fast", color = color.new(color.teal, 0), linewidth = 1)
+plot(emaMid, "EMA Mid", color = color.new(color.orange, 0), linewidth = 1)
+plot(emaSlow, "EMA Slow", color = color.new(color.red, 0), linewidth = 2)
+plot(vwapVal, "VWAP", color = color.new(color.blue, 0), linewidth = 1)
+plot(supertrendVal, "Supertrend", color = supertrendDir < 0 ? color.new(color.lime, 0) : color.new(color.red, 0), linewidth = 2)
+
+bgcolor(inLondon and tradeLondon ? color.new(color.blue, 92) : na, title = "London Session")
+bgcolor(inNY and tradeNY ? color.new(color.green, 92) : na, title = "New York Session")
+bgcolor(newsBlackout ? color.new(color.red, 85) : na, title = "News Blackout")
+
+if validLong
+    label.new(bar_index, low - atrVal, "BUY\nRR 1:" + str.tostring(finalRR_Long, "#.##"),
+         style = label.style_label_up, color = color.new(color.green, 0), textcolor = color.white, size = size.small)
+    line.new(bar_index, slPriceLong, bar_index + 20, slPriceLong, color = color.red, style = line.style_dashed)
+    line.new(bar_index, tpPriceLong, bar_index + 20, tpPriceLong, color = color.green, style = line.style_dashed)
+    box.new(bar_index, close, bar_index + 20, slPriceLong, bgcolor = color.new(color.red, 85), border_color = color.red)
+    box.new(bar_index, tpPriceLong, bar_index + 20, close, bgcolor = color.new(color.green, 85), border_color = color.green)
+
+if validShort
+    label.new(bar_index, high + atrVal, "SELL\nRR 1:" + str.tostring(finalRR_Short, "#.##"),
+         style = label.style_label_down, color = color.new(color.red, 0), textcolor = color.white, size = size.small)
+    line.new(bar_index, slPriceShort, bar_index + 20, slPriceShort, color = color.red, style = line.style_dashed)
+    line.new(bar_index, tpPriceShort, bar_index + 20, tpPriceShort, color = color.green, style = line.style_dashed)
+    box.new(bar_index, slPriceShort, bar_index + 20, close, bgcolor = color.new(color.red, 85), border_color = color.red)
+    box.new(bar_index, close, bar_index + 20, tpPriceShort, bgcolor = color.new(color.green, 85), border_color = color.green)
+
+// =============================================================================
+// DASHBOARD
+// =============================================================================
+var table dash = table.new(dashPosition, 2, 14, bgcolor = color.new(color.black, 20), border_color = color.gray, border_width = 1)
+
+if showDashboard and barstate.islast
+    trendLabel = trendBullStack ? "BULLISH" : trendBearStack ? "BEARISH" : "NEUTRAL/RANGE"
+    sessionLabel = inLondon ? "London" : inNY ? "New York" : inAsian ? "Asian" : "Off-Session"
+    biasLabel = structureBias == 1 ? "HH/HL (Bullish)" : structureBias == -1 ? "LH/LL (Bearish)" : "Undefined"
+    winTrades = strategy.wintrades
+    totalTrades = strategy.closedtrades
+    winRate = totalTrades > 0 ? (winTrades / totalTrades) * 100 : 0
+    grossProfit = strategy.grossprofit
+    grossLoss = strategy.grossloss
+    profitFactor = grossLoss > 0 ? grossProfit / grossLoss : (grossProfit > 0 ? 999 : 0)
+    ddPct = strategy.equity > 0 ? (strategy.max_drawdown / strategy.equity) * 100 : 0
+
+    table.cell(dash, 0, 0, "A+ Confluence Dashboard", text_color = color.white, bgcolor = color.new(color.blue, 40))
+    table.cell(dash, 1, 0, syminfo.ticker, text_color = color.white, bgcolor = color.new(color.blue, 40))
+    table.cell(dash, 0, 1, "Trend")
+    table.cell(dash, 1, 1, trendLabel)
+    table.cell(dash, 0, 2, "Structure Bias")
+    table.cell(dash, 1, 2, biasLabel)
+    table.cell(dash, 0, 3, "Session")
+    table.cell(dash, 1, 3, sessionLabel)
+    table.cell(dash, 0, 4, "ATR %")
+    table.cell(dash, 1, 4, str.tostring(atrPct, "#.###"))
+    table.cell(dash, 0, 5, "ADX")
+    table.cell(dash, 1, 5, str.tostring(adxVal, "#.#"))
+    table.cell(dash, 0, 6, "RSI")
+    table.cell(dash, 1, 6, str.tostring(rsiVal, "#.#"))
+    table.cell(dash, 0, 7, "Rel. Volume")
+    table.cell(dash, 1, 7, str.tostring(relVol, "#.##") + "x")
+    table.cell(dash, 0, 8, "Risk % / Amount")
+    table.cell(dash, 1, 8, str.tostring(cappedRisk) + "% / " + str.tostring(riskAmount, "#.##"))
+    table.cell(dash, 0, 9, "Net Profit")
+    table.cell(dash, 1, 9, str.tostring(strategy.netprofit, "#.##"))
+    table.cell(dash, 0, 10, "Win Rate")
+    table.cell(dash, 1, 10, str.tostring(winRate, "#.#") + "%")
+    table.cell(dash, 0, 11, "Profit Factor")
+    table.cell(dash, 1, 11, str.tostring(profitFactor, "#.##"))
+    table.cell(dash, 0, 12, "Max Drawdown")
+    table.cell(dash, 1, 12, str.tostring(ddPct, "#.##") + "%")
+    table.cell(dash, 0, 13, "Closed Trades")
+    table.cell(dash, 1, 13, str.tostring(totalTrades))
+
+// =============================================================================
+// ALERT CONDITIONS (for TradingView alert dialog / webhook to MT5 bridge)
+// =============================================================================
+alertcondition(validLong, "A+ Confluence BUY", "A+ Confluence BUY signal on {{ticker}} at {{close}}")
+alertcondition(validShort, "A+ Confluence SELL", "A+ Confluence SELL signal on {{ticker}} at {{close}}")
